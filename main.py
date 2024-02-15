@@ -44,7 +44,14 @@ class App(ctk.CTk):
         # https://stackoverflow.com/questions/70951415/how-to-change-tkinter-app-display-name-in-ubuntu-panel
         # https://github.com/PySimpleGUI/PySimpleGUI/issues/3529
         self.wm_title(title)
-        self.geometry(f'{size[0]}x{size[1]}')
+        
+        #get center coordinates of the screen and place the window there
+        self.ws = self.winfo_screenwidth() # width of the screen
+        self.hs = self.winfo_screenheight() # height of the screen
+        self.x = int((self.ws/2) - (size[0]/2))
+        self.y = int((self.hs/2) - (size[1]/2))
+        self.geometry(f'{size[0]}x{size[1]}+{self.x}+{self.y}')
+        #self.geometry(f'{size[0]}x{size[1]}')
         self.minsize(size[0],size[1])
         self.maxsize(size[0],size[1]) # fixed size
 
@@ -111,11 +118,6 @@ class App(ctk.CTk):
         self.menu_button1.grid(row=1, column=0, sticky="ew")
         self.menu_button2.grid(row=2, column=0, sticky="ew")
         self.menu_button3.grid(row=3, column=0, sticky="ew")
-        # add separator before dbg button
-        #sep = ttk.Separator(self,orient='horizontal')
-        #sep.grid(row=4, column=0, sticky="new")
-        #self.empty_label=ctk.CTkLabel(self.left_frame, text="") #add empty label to get spacing between separator and console button
-        #self.empty_label.grid(row=5, column=0)
         self.menu_button4.grid(row=4, column=0, sticky="ew")
 
         # bind event to the WiFi logo --> mouse click will show menu. Hover will show tooltip
@@ -492,18 +494,9 @@ class COMMenu(ctk.CTkFrame):
 
         # define the widgets
         label_ip = ctk.CTkLabel(self, text="IP")
-        #label_country = ctk.CTkLabel(self, text="Country Code")
         label_fw = ctk.CTkLabel(self, text="FW")
         entry_ip = ctk.CTkEntry(self, placeholder_text="192.168.xx.xxx")
-        #combo_country = ctk.CTkComboBox(self, values=countries, command=self.get_country)
-        combo_fw = ctk.CTkComboBox(self, values=fw, command=self.get_fw)
-        """
-        radio_button_frame = ctk.CTkFrame(self)
-        radio_button_label = ctk.CTkLabel(master=radio_button_frame, text='Firmware')
-        self.radio_var = tkinter.IntVar(value=0)
-        radio_button1 = ctk.CTkRadioButton(master=radio_button_frame, variable=self.radio_var, value=0, text='MFG')
-        radio_button2 = ctk.CTkRadioButton(master=radio_button_frame, variable=self.radio_var, value=1, text='STD')
-        """
+        combo_fw = ctk.CTkComboBox(self, values=fw, command=self.get_fw) 
         button_load = ctk.CTkButton(self, text="Load FW", command=self.callback_load_fw)
         
         # define the grid (use uniform='a' to avoid that empty cells takes up less space than cells with widgets)
@@ -514,15 +507,10 @@ class COMMenu(ctk.CTkFrame):
         # place the widgets
         label_ip.grid(row=1, column=0, sticky='e', padx=10)
         entry_ip.grid(row=1, column=1, sticky='ew', padx=20)
-        #label_country.grid(row=2, column=0, sticky='e', padx=10)
-        #combo_country.grid(row=2, column=1, sticky='ew', padx=20)
+
         label_fw.grid(row=2, column=0, sticky='e', padx=10)
         combo_fw.grid(row=2, column=1, sticky='ew', padx=20)
 
-        #radio_button_frame.grid(row=3, column=1, rowspan=2, columnspan=1, padx=20, pady=10, sticky='new')
-        #radio_button_label.grid(row=0, column=1, padx=20, sticky="w")
-        #radio_button1.grid(row=1, column=1, padx=20, pady=10, sticky="e")
-        #radio_button2.grid(row=2, column=1, padx=20, pady=10, sticky="e")
         button_load.grid(row=3, column=1, sticky='ew', padx=20)
 
     def callback_load_fw(self):
@@ -550,10 +538,24 @@ class DebugWindow(ctk.CTkToplevel):
      
     def __init__(self, master=None): 
         super().__init__(master=master)
+
+        #define window size
+        self.w = 800
+        self.h = 200
+        
+        #get center coordinates of the screen and place the window there
+        self.ws = self.winfo_screenwidth() # width of the screen
+        self.hs = self.winfo_screenheight() # height of the screen
+        self.x = int((self.ws/2) - (self.w/2))
+        self.y = int((self.hs/2) - (self.h/2))
+        self.geometry(f'{self.w}x{self.h}+{self.x}+{self.y}')
+        #self.geometry("800x200") # this will show up in the upper left corner
+
         self.title("DEBUG")
-        self.geometry("800x200")
-        self.minsize(800, 200)
-        self.maxsize(800, 200)
+
+        # fully constraint the window
+        self.minsize(self.w, self.h)
+        self.maxsize(self.w, self.h)
 
         # When pressing the x button in the titlebar it hides instead of gets destroyed -> closing it will create problems trying to open it again
         self.protocol("WM_DELETE_WINDOW", self.hide)
@@ -576,20 +578,18 @@ class DebugWindow(ctk.CTkToplevel):
         
         # Create the custom log handler so that all logger messages are automatically shown in the log window
         log_handler = DebugHandler(self.text_area)
-        #formatter = logging.Formatter('%(asctime)s %(levelname)s %(message)s')
-        #formatter = logging.Formatter('%(asctime)s %(levelname)s %(message)s', '%H:%M:%S')
+
+        # Create a file log handler. Can be useful to be able to send this log for support
+        file_handler = logging.FileHandler("./logs/log.txt")
+
+        # create the formatter
         formatter = logging.Formatter(fmt='%(asctime)-s - %(levelname)-8s - %(message)-s')
-        #formatter = logging.Formatter(fmt=' %(name)s :: %(levelname)-10s :: %(message)s')
-        log_handler.setFormatter(formatter)
-        logger.addHandler(log_handler)
         
-        """
-        logger.info('hello world')
-        logger.warning('be careful!')
-        logger.debug('debug')
-        logger.error('you will see this')
-        logger.critical('critical is logged too!')
-        """
+        # add formatter and handlers
+        log_handler.setFormatter(formatter)
+        file_handler.setFormatter(formatter)
+        logger.addHandler(log_handler)
+        logger.addHandler(file_handler)
 
     def show(self):
         self.deiconify()
