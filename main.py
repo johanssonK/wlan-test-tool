@@ -3,6 +3,8 @@ import tkinter
 import logging
 from tkinter import ttk
 import customtkinter as ctk
+from CTkMenuBar import *                 #pip install CTkMenuBar
+from CTkMessagebox import CTkMessagebox  #pip install CTkMessagebox
 from PIL import Image
 
 """
@@ -34,10 +36,13 @@ logger = logging.getLogger('wltrx-gui')
 
 
 class App(ctk.CTk):
-    def __init__(self, title, size):
-        
+    def __init__(self, title, size, className):
+
         # main setup
-        super().__init__()
+        super().__init__(className=className)
+        # TODO: className should be the name shown in the Ubuntu panel. Currently "Toplevel" is shown as name when hovering over the program. Is it customtkinter that overrides it?
+        # https://stackoverflow.com/questions/70951415/how-to-change-tkinter-app-display-name-in-ubuntu-panel
+        # https://github.com/PySimpleGUI/PySimpleGUI/issues/3529
         self.wm_title(title)
         self.geometry(f'{size[0]}x{size[1]}')
         self.minsize(size[0],size[1])
@@ -46,12 +51,14 @@ class App(ctk.CTk):
         # appearance
         ctk.set_default_color_theme('blue') # blue is standard
         ctk.set_appearance_mode('dark') # system is standard but might get ugly with the blue colors?
-        #titlebar_icon = tkinter.PhotoImage(file='wifi.png')  
-        #self.wm_iconphoto(True, titlebar_icon)
+        
+        # program icon
+        self.titlebar_icon = tkinter.PhotoImage(file='./assets/wifi.png') # need to be png format
+        self.wm_iconphoto(True, self.titlebar_icon)
         
         # widgets
         self.left_frame = ctk.CTkFrame(master=self, corner_radius=0)
-        self.left_frame.place(x=0, y=0, relwidth=0.35, relheight=1) # relwidth here must match the remainder of the Rightmenu relwidth
+        self.left_frame.place(x=0, y=0, relwidth=0.30, relheight=1) # relwidth here must match the remainder of the Rightmenu relwidth
         self.create_left_widgets()
         self.menuRight = RightMenu(self)
         self.debug = DebugWindow(self)
@@ -60,6 +67,10 @@ class App(ctk.CTk):
         self.callback_button1()
         self.debug.hide()
         logger.debug("init")
+
+        # Add a CTkMenuBar if clicking on the WiFi logo
+        self.click_counter = 0
+
         # run 
         self.mainloop()
 
@@ -72,7 +83,7 @@ class App(ctk.CTk):
         self.console_image= ctk.CTkImage(Image.open('./assets/console-64.ico'), size=(20, 20))
 
         # create the top label
-        self.logo_label = ctk.CTkLabel(self.left_frame, text='WLTRX for noobs', image=self.logo_image, 
+        self.logo_label = ctk.CTkLabel(self.left_frame, text='WTT', image=self.logo_image, 
                                      compound='top', font=ctk.CTkFont(size=15, weight='bold'))
         
         # create the push buttons 
@@ -106,7 +117,47 @@ class App(ctk.CTk):
         #self.empty_label=ctk.CTkLabel(self.left_frame, text="") #add empty label to get spacing between separator and console button
         #self.empty_label.grid(row=5, column=0)
         self.menu_button4.grid(row=4, column=0, sticky="ew")
-        
+
+        # bind event to the WiFi logo --> mouse click will show menu. Hover will show tooltip
+        self.logo_label.bind('<Button-1>', self.toggle_menu)
+        self.logo_label.bind('<Enter>', self.show_tooltip)
+        self.logo_label.bind('<Leave>', self.hide_tooltip)
+    
+    def show_tooltip(self, event):
+        """
+        Inspiration from: https://stackoverflow.com/questions/3221956/how-do-i-display-tooltips-in-tkinter
+        """
+        self.tooltip=tkinter.Toplevel()
+        self.tooltip.overrideredirect(True)
+        self.tooltip.geometry(f'+{event.x_root+15}+{event.y_root+10}')
+        self.label=tkinter.Label(self.tooltip,text="Click on the WiFi logo to toggle the menu")
+        self.label.pack()
+
+    def hide_tooltip(self,event):
+        self.tooltip.destroy()
+
+    def show_menu(self):
+        #TODO: Creating a new menu every time is ugly. It should just be a hide/show. But self.config(menu=self.menu) does not work. Need to investigate
+        self.menu = CTkMenuBar(self, bg_color='grey20', border_width=0)
+        button_1 = self.menu.add_cascade("File")
+        button_2 = self.menu.add_cascade("Help")
+
+        dropdown1 = CustomDropdownMenu(widget=button_1)
+        dropdown1.add_option(option="Exit", command=lambda: self.destroy())
+
+        dropdown2 = CustomDropdownMenu(widget=button_2)
+        dropdown2.add_option(option="About", command=lambda: CTkMessagebox(title='About', 
+                                                                           message='Need help? Send an email to Karl at: xmoontool@protonmail.com \n\nIcons by: https://icons8.com/'))
+    
+    def hide_menu(self):
+        self.menu.destroy()
+
+    def toggle_menu(self, event):
+        self.click_counter+=1
+        if(self.click_counter%2 != 0):
+            self.show_menu()
+        else:
+            self.hide_menu()   
 
     def callback_button1(self):
         """ General """
@@ -148,7 +199,7 @@ class App(ctk.CTk):
 class RightMenu(ctk.CTkFrame):
     def __init__(self, parent):
         super().__init__(master=parent)
-        self.place(relx=0.35, y=0, relwidth=0.65, relheight=1)
+        self.place(relx=0.30, y=0, relwidth=0.70, relheight=1)
         self.COM = COMMenu(self)
         self.TX = TxMenu(self)
         self.RX = RxMenu(self)
@@ -572,4 +623,4 @@ class DebugHandler(logging.Handler):
 
 if __name__ == "__main__":
     logger.setLevel(level=logging.DEBUG)
-    App('WLAN Test Tool', (500,400))
+    App(title='WLAN Test Tool', size=(500,400), className='wtt')
