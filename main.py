@@ -228,9 +228,6 @@ class TxMenu(ctk.CTkFrame):
         label_core = ctk.CTkLabel(self, text="Tx Core")
         label_country = ctk.CTkLabel(self, text="Country Code")
         label_channel = ctk.CTkLabel(self, text="Channel")
-        """
-        Add country code here instead of COM menu
-        """
         
         """
         Define the combo boxes
@@ -290,38 +287,53 @@ class TxMenu(ctk.CTkFrame):
     # Reminder; order is: band -> standard -> rate -> bw -> core -> country_code -> channel
     def get_band(self, band):
         self.band = band
+        self.standard = ''
+        self.rate = ''
+        self.bw = ''
+        self.core = ''
+        self.country = ''
+        self.channel = ''
         logger.debug(f"band={band}")
-        #self.combo_standard.configure(state='normal', values=list(data[band].keys()))
         self.validate()
     
     def get_standard(self, standard):
         self.standard = standard
+        self.rate = ''
+        self.bw = ''
+        self.core = ''
+        self.country = ''
+        self.channel = ''
         logger.debug(f"standard={standard}")
-        #self.combo_rate.configure(state='normal', values=list(data[self.band][self.standard].keys()))
         self.validate()
 
     def get_rate(self, rate):
         self.rate = rate
+        self.bw = ''
+        self.core = ''
+        self.country = ''
+        self.channel = ''
         logger.debug(f"rate={rate}")
-        #self.combo_bw.configure(state='normal', values=list(data[self.band][self.standard][self.rate].keys()))
         self.validate()
     
     def get_bw(self, bw):
         self.bw = bw
+        self.core = ''
+        self.country = ''
+        self.channel = ''
         logger.debug(f"bw={bw}")
-        #self.combo_core.configure(state='normal', values=list(data[self.band][self.standard][self.rate][self.bw].keys()))
         self.validate()
     
     def get_core(self, core):
         self.core = core
+        self.country = ''
+        self.channel = ''
         logger.debug(f"core={core}")
-        #self.combo_country.configure(state='normal', values=list(data[self.band][self.standard][self.rate][self.bw][self.core].keys()))
         self.validate()
 
     def get_country(self, country):
         self.country = country
+        self.channel = ''
         logger.debug(f"country={country}")
-        #self.combo_channel.configure(state='normal', values=data[self.band][self.standard][self.rate][self.bw][self.core][self.country])
         self.validate()
     
     def get_channel(self, channel):
@@ -342,134 +354,211 @@ class TxMenu(ctk.CTkFrame):
         Also need to erase the invalid value, even if it is disabled
         """
         logger.debug(f"band={self.band}, standard={self.standard}, rate={self.rate}, bw={self.bw}, core={self.core}, country={self.country}, channel={self.channel}")
+        
+        # we have a nested try/except because the data[self.band][self.standard][self.rate][self.bw][self.core][self.country] is not fully populated from the beginning
         try:
-            #data.keys() --> ['2.4GHz', '5GHz']
-            if(self.band in list(data.keys())):
-                #Band ok!
-
-                #Standard
-                #self.combo_standard.set('') måste slänga in en sådan här i en except check för att fimpa det dåliga värdet som ligger kvar
-                self.combo_standard.configure(state='normal', values=list(data[self.band].keys()))
-
-                #Rate
-                self.combo_rate.configure(state='disabled')
-                self.combo_rate.set('') # tar ingen effekt om knappen är disabled i kodraden ovan
-
-                #BW
-                self.combo_bw.configure(state='disabled')
-                self.combo_bw.set('') 
-                
-                #Core
-                self.combo_core.configure(state='disabled')
-                self.combo_core.set('') 
-                
-                #Country
-                self.combo_country.configure(state='disabled')
-                self.combo_country.set('') 
-
-                #Channel
-                self.combo_channel.configure(state='disabled')
-                self.combo_channel.set('')
+            if(self.channel in list(data[self.band][self.standard][self.rate][self.bw][self.core][self.country])):
+                self.check_channel_ok()
             else:
-                self.combo_rate.set('') # tar ingen effekt om knappen är disabled i kodraden ovan
-                self.combo_bw.set('')
-                self.combo_core.set('')
-                self.combo_country.set('')
-                self.combo_channel.set('')
-
-            #list(data[self.band].keys()) --> ['11b', '11g', '11n', '11ac'] if 2.4GHz
-            if(self.standard in list(data[self.band].keys())):
-                #Band ok!
-                #Standard ok!
-
-                #Rate
-                self.combo_rate.configure(state='normal', values=list(data[self.band][self.standard].keys()))
-                
-                #BW
-                self.combo_bw.configure(state='disabled')
-                self.combo_bw.set('') 
-
-                #Core
-                self.combo_core.configure(state='disabled')
-                self.combo_core.set('')
-
-                #Country
-                self.combo_country.configure(state='disabled')
-                self.combo_country.set('')
-
-                #Channel
-                self.combo_channel.configure(state='disabled')
-                self.combo_channel.set('') 
-
-            # list(data[self.band][self.standard].keys()) --> ['1Mbps', '2Mbps', '11Mbps', '5.5Mbps'] (if 2.4GHz 11b)
-            if(self.rate in list(data[self.band][self.standard].keys())):
-                #Band ok!
-                #Standard ok!
-                #Rate ok!
-
-                #BW
-                self.combo_bw.configure(state='normal', values=list(data[self.band][self.standard][self.rate].keys()))
-                
-                #Core
-                self.combo_core.configure(state='disabled')
-                self.combo_core.set('')
-
-                #Country
-                self.combo_country.configure(state='disabled')
-                self.combo_country.set('')
-
-                #Channel
-                self.combo_channel.configure(state='disabled')
-                self.combo_channel.set('')
-
-            if(self.bw in list(data[self.band][self.standard][self.rate].keys())):
-                #Band ok!
-                #Standard ok!
-                #Rate ok!
-                #BW ok!
-                
-                #Core
-                self.combo_core.configure(state='normal', values=list(data[self.band][self.standard][self.rate][self.bw].keys()))
-
-                #Country
-                self.combo_country.configure(state='disabled')
-                self.combo_country.set('')
-
-                #Channel
-                self.combo_channel.configure(state='disabled')
-                self.combo_channel.set('')
-
-            if(self.core in list(data[self.band][self.standard][self.rate][self.bw].keys())):
-                #Band ok!
-                #Standard ok!
-                #Rate ok!
-                #BW ok!
-                #Core ok!
-
-                #Country
-                self.combo_country.configure(state='normal', values=list(data[self.band][self.standard][self.rate][self.bw][self.core].keys()))
-                
-                #Channel
-                self.combo_channel.configure(state='disabled')
-                self.combo_channel.set('')
-
-            if(self.country in list(data[self.band][self.standard][self.rate][self.bw][self.core].keys())):
-                #Band ok!
-                #Standard ok!
-                #Rate ok!
-                #BW ok!
-                #Core ok!
-                #Country ok!
-
-                #Channel
-                self.combo_channel.configure(state='normal', values=data[self.band][self.standard][self.rate][self.bw][self.core][self.country])
-
-            if(self.channel in list(data[self.band][self.standard][self.rate][self.bw][self.core][self.country].keys())):
-                #print("7")
-                pass
+                self.check_country_ok()
+        
         except:
-            pass
+            try:
+                if(self.country in list(data[self.band][self.standard][self.rate][self.bw][self.core].keys())):
+                    self.check_country_ok()
+                else:
+                    self.check_core_ok()
+            except:
+                try:
+                    if(self.core in list(data[self.band][self.standard][self.rate][self.bw].keys())):
+                        self.check_core_ok()
+                    else:
+                        self.check_bw_ok()
+                except:
+                    try:
+                        if(self.bw in list(data[self.band][self.standard][self.rate].keys())):
+                            self.check_bw_ok()
+                        else:
+                            self.check_rate_ok()
+                    except:
+                        try:
+                            # list(data[self.band][self.standard].keys()) --> ['1Mbps', '2Mbps', '11Mbps', '5.5Mbps'] (if 2.4GHz 11b)
+                            if(self.rate in list(data[self.band][self.standard].keys())):
+                                self.check_rate_ok()
+                            else:
+                                self.check_standard_ok()
+                        except:
+                            try:
+                                #list(data[self.band].keys()) --> ['11b', '11g', '11n', '11ac'] if 2.4GHz
+                                if(self.standard in list(data[self.band].keys())):
+                                    self.check_standard_ok()
+                                else:
+                                    #Here we enter when we set band first time, the try is successfull, but since standard is empty we get into this else
+                                    self.check_band_ok()
+                            except:
+                                try:
+                                    #data.keys() --> ['2.4GHz', '5GHz']
+                                    if(self.band in list(data.keys())):
+                                        #Band ok!
+                                        self.check_band_ok()
+                                except:
+                                    pass
+    
+    def check_band_ok(self):
+        #data.keys() --> ['2.4GHz', '5GHz']
+        #Band ok!
 
+        self.enable_all_combos()
+
+        #Standard
+        self.standard = ''
+        self.combo_standard.set('')
+        self.combo_standard.configure(state='normal', values=list(data[self.band].keys()))
+
+        #Rate
+        self.rate = ''
+        self.combo_rate.set('')
+        self.combo_rate.configure(state='disabled')
+
+        #BW
+        self.bw = ''
+        self.combo_bw.set('')
+        self.combo_bw.configure(state='disabled')
+        
+        #Core
+        self.core = ''
+        self.combo_core.set('')
+        self.combo_core.configure(state='disabled')
+        
+        #Country
+        self.country = ''
+        self.combo_country.set('')
+        self.combo_country.configure(state='disabled')
+
+        #Channel
+        self.channel = ''
+        self.combo_channel.set('')
+        self.combo_channel.configure(state='disabled')
+
+    def check_standard_ok(self):
+        #Band ok!
+        #Standard ok!
+
+        self.enable_all_combos()
+
+        #Rate
+        self.rate = ''
+        self.combo_rate.set('')
+        self.combo_rate.configure(state='normal', values=list(data[self.band][self.standard].keys()))
+        
+        #BW
+        self.bw = ''
+        self.combo_bw.configure(state='disabled')
+
+        #Core
+        self.core = ''
+        self.combo_core.configure(state='disabled')
+
+        #Country
+        self.country = ''
+        self.combo_country.configure(state='disabled')
+
+        #Channel
+        self.channel = ''
+        self.combo_channel.configure(state='disabled')
+
+    def check_rate_ok(self):
+        #Band ok!
+        #Standard ok!
+        #Rate ok!
+
+        self.enable_all_combos()
+
+        #BW
+        self.bw = ''
+        self.combo_bw.set('')
+        self.combo_bw.configure(state='normal', values=list(data[self.band][self.standard][self.rate].keys()))
+        
+        #Core
+        self.core = ''
+        self.combo_core.configure(state='disabled')
+
+        #Country
+        self.country = ''
+        self.combo_country.configure(state='disabled')
+
+        #Channel
+        self.channel = ''
+        self.combo_channel.configure(state='disabled')
+
+    def check_bw_ok(self):
+        #Band ok!
+        #Standard ok!
+        #Rate ok!
+        #BW ok!
+        
+        self.enable_all_combos()
+
+        #Core
+        self.core = ''
+        self.combo_core.set('')
+        self.combo_core.configure(state='normal', values=list(data[self.band][self.standard][self.rate][self.bw].keys()))
+
+        #Country
+        self.country = ''
+        self.combo_country.configure(state='disabled')
+
+        #Channel
+        self.channel = ''
+        self.combo_channel.configure(state='disabled')
+
+    def check_core_ok(self):
+        #Band ok!
+        #Standard ok!
+        #Rate ok!
+        #BW ok!
+        #Core ok!
+
+        self.enable_all_combos()
+
+        #Country
+        self.country = ''
+        self.combo_country.set('')
+        self.combo_country.configure(state='normal', values=list(data[self.band][self.standard][self.rate][self.bw][self.core].keys()))
+        
+        #Channel
+        self.channel = ''
+        self.combo_channel.configure(state='disabled')
+
+    def check_country_ok(self):
+        #Band ok!
+        #Standard ok!
+        #Rate ok!
+        #BW ok!
+        #Core ok!
+        #Country ok!
+
+        self.enable_all_combos()
+        
+        #Channel
+        self.channel = ''
+        self.combo_channel.set('')
+        self.combo_channel.configure(state='normal', values=data[self.band][self.standard][self.rate][self.bw][self.core][self.country])
+
+    def check_channel_ok(self):
+        #if we get here, all is good
+        pass
+
+    def enable_all_combos(self):
+        # if the combo box is disabled and we try combo.set(''), it has not effect. So enabling all, before updating the values in them is safer than just assume they are enabled
+        self.combo_channel.configure(state='normal')
+        self.combo_standard.configure(state='normal')
+        self.combo_rate.configure(state='normal')
+        self.combo_bw.configure(state='normal')
+        self.combo_core.configure(state='normal')
+        self.combo_country.configure(state='normal')
+        self.combo_channel.configure(state='normal')
+    
 
 class RxMenu(ctk.CTkFrame):
     def __init__(self, parent):
@@ -580,8 +669,7 @@ class DebugWindow(ctk.CTkToplevel):
         log_handler = DebugHandler(self.text_area)
 
         # Create a file log handler. Can be useful to be able to send this log for support
-        file_handler = logging.FileHandler("./logs/log.txt")
-
+        file_handler = logging.FileHandler('./logs/log.txt', 'w') #overwrite old log
         # create the formatter
         formatter = logging.Formatter(fmt='%(asctime)-s - %(levelname)-8s - %(message)-s')
         
