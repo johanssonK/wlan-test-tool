@@ -564,11 +564,64 @@ class RxMenu(ctk.CTkFrame):
     def __init__(self, parent):
         super().__init__(master=parent)
 
-        label = ctk.CTkLabel(self, text="RX")
-        button = ctk.CTkButton(self, text="RX")
+        # Define variables that can keep track of choosen Tx values
+        self.band = [""]
+        self.core = [""]
+        self.channel = [""]
+        self.nbr_of_packets = [""]
 
-        label.pack(expand=True, fill='both')
-        button.pack(expand=True, fill='both', pady=10)
+        # define the labels
+        label_band = ctk.CTkLabel(self, text="Frequency Band")
+        label_core = ctk.CTkLabel(self, text="Rx Core")
+        label_channel = ctk.CTkLabel(self, text="Channel")
+        label_packets = ctk.CTkLabel(self, text="Number of packets")
+
+        # define the combo boxes and entry box
+        self.combo_band = ctk.CTkComboBox(self, values=list(data.keys()), command=self.get_band)
+        self.combo_core = ctk.CTkComboBox(self, values=self.core, command=self.get_core, state='disabled')
+        self.combo_channel = ctk.CTkComboBox(self, values=self.channel, command=self.get_channel, state='disabled')
+        self.packet_entry = ctk.CTkEntry(self, placeholder_text="1000")
+
+        # set all combos to NULL initially
+        self.combo_band.set('')     
+        self.combo_core.set('')
+        self.combo_channel.set('')     
+
+        # define buttons
+        button_start = ctk.CTkButton(self, text="Start", command=self.callback_start)
+        button_stop = ctk.CTkButton(self, text="Stop", command=self.callback_stop)
+
+        # place the widgets with grid technique
+        # Order: band -> core -> channel -> nbr of packets
+        self.columnconfigure((0, 1), weight=1, uniform='a')
+        self.rowconfigure((0, 1, 2, 3, 4, 5, 6), weight=1, uniform='a')
+        label_band.grid(row=0, column=0, sticky="e", padx=10)
+        label_core.grid(row=1, column=0, sticky="e", padx=10)
+        label_channel.grid(row=2, column=0, sticky="e", padx=10)
+        label_packets.grid(row=3, column=0, sticky="e", padx=10)
+
+        self.combo_band.grid(row=0, column=1, sticky="ew", padx=10)
+        self.combo_core.grid(row=1, column=1, sticky="ew", padx=10)
+        self.combo_channel.grid(row=2, column=1, sticky="ew", padx=10)
+        self.packet_entry.grid(row=3, column=1, sticky="ew", padx=10)
+
+        button_stop.grid(row=6, column=0)
+        button_start.grid(row=6, column=1)
+
+    def get_band(self, band):
+        pass
+
+    def get_core(self, core):
+        pass
+
+    def get_channel(self, channel):
+        pass
+
+    def callback_start(self):
+        logger.debug("someone pressed start")
+    
+    def callback_stop(self):
+        logger.debug("someone pressed stop")
 
     def show_menu(self):
         self.pack(side='left', expand=True, fill='both')
