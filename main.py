@@ -1,6 +1,8 @@
 import json
 import tkinter
 import logging
+import re
+import os
 from tkinter import ttk
 import customtkinter as ctk
 from CTkMenuBar import *                 #pip install CTkMenuBar
@@ -40,9 +42,6 @@ class App(ctk.CTk):
 
         # main setup
         super().__init__(className=className)
-        # TODO: className should be the name shown in the Ubuntu panel. Currently "Toplevel" is shown as name when hovering over the program. Is it customtkinter that overrides it?
-        # https://stackoverflow.com/questions/70951415/how-to-change-tkinter-app-display-name-in-ubuntu-panel
-        # https://github.com/PySimpleGUI/PySimpleGUI/issues/3529
         self.wm_title(title)
         
         #get center coordinates of the screen and place the window there
@@ -637,9 +636,9 @@ class COMMenu(ctk.CTkFrame):
         # define the widgets
         label_ip = ctk.CTkLabel(self, text="IP")
         label_fw = ctk.CTkLabel(self, text="FW")
-        entry_ip = ctk.CTkEntry(self, placeholder_text="192.168.xx.xxx")
-        combo_fw = ctk.CTkComboBox(self, values=fw, command=self.get_fw) 
-        button_load = ctk.CTkButton(self, text="Load FW", command=self.callback_load_fw)
+        self.entry_ip = ctk.CTkEntry(self, placeholder_text="192.168.xx.xxx")
+        self.combo_fw = ctk.CTkComboBox(self, values=fw, command=self.get_fw) 
+        self.button_load = ctk.CTkButton(self, text="Load FW", command=self.callback_load_fw)
         
         # define the grid (use uniform='a' to avoid that empty cells takes up less space than cells with widgets)
         self.columnconfigure(0, weight=1, uniform='a')
@@ -648,21 +647,36 @@ class COMMenu(ctk.CTkFrame):
 
         # place the widgets
         label_ip.grid(row=1, column=0, sticky='e', padx=10)
-        entry_ip.grid(row=1, column=1, sticky='ew', padx=20)
+        self.entry_ip.grid(row=1, column=1, sticky='ew', padx=20)
 
         label_fw.grid(row=2, column=0, sticky='e', padx=10)
-        combo_fw.grid(row=2, column=1, sticky='ew', padx=20)
+        self.combo_fw.grid(row=2, column=1, sticky='ew', padx=20)
 
-        button_load.grid(row=3, column=1, sticky='ew', padx=20)
+        self.button_load.grid(row=3, column=1, sticky='ew', padx=20)
 
     def callback_load_fw(self):
-        logger.debug("load FW")
+        ip = self.entry_ip.get()
+        logger.debug(f"load FW, IP = {ip}")
+        self.set_ip(ip)
+        #os.system("python3 ./dut-control/test.py")
+        os.system("python3 ./dut-control/load_mfg_fw.py")
 
     def get_country(self, country):
         logger.debug(f"country={country}")
     
     def get_fw(self, fw):
         logger.debug("get FW")
+
+    def set_ip(self, ip):
+        """
+        The config.ini contains a line with 'IP =  10.8.17.121' that needs to be replaced with the new IP. Use regexp
+        """
+        with open ('./dut-control/config.ini', 'r+') as f:
+            file = f.read()
+            file = re.sub(r'(?<=IP = ).*$' , ip, file, flags=re.MULTILINE) # change everything after 'IP = ' to the new ip argument
+            f.seek(0)
+            f.write(file)
+            f.truncate()
 
     def show_menu(self):
         self.pack(side='left', expand=True, fill='both')
