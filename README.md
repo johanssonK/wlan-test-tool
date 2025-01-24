@@ -26,20 +26,20 @@ pip3 install CTkMenuBar
 pip3 install CTkMessagebox
 ```
 
-### Run the program from the vitual env
+### Run the program from the virtual env
 
 ```bash
 python3 main.py
 ```
 
 ### Using the program
-The communication to the DUT is configured in the "general" tab:
+The communication to the DUT is configured in the "general" tab\
 <img align="center" src="./assets/app/general.png">
 
-Transmitter control:
-<img align="center" src="./assets/app/tx.png">
+Transmitter control:\
+<img align="center" src="./assets/app/tx.png">  
 
-Receiver control:
-<img align="center" src="./assets/app/rx.png">
+Receiver control:\
+<img align="center" src="./assets/app/rx.png">  
 
 Icons by: https://icons8.com/
